@@ -2,6 +2,10 @@ const express = require("express");
 
 const server = express();
 
+server.use(express.json());
+
+const users = ["Fabricio", "Jessica", "Lola"];
+
 //ROUTE
 server.get("/home", (req, res) => {
   return res.json({
@@ -24,11 +28,49 @@ server.get("/welcome", (req, res) => {
 });
 
 //ROUTE WITH ROUTE PARAMS
-server.get("/users/:id", (req, res) => {
-  const id = req.params.id;
+server.get("/users/:index", (req, res) => {
+  const { index } = req.params;
+
+  return res.json(users[index]);
+});
+
+//ALL USERS
+server.get("/users", (req, res) => {
+  return res.json({
+    usuarios: users
+  });
+});
+
+//CREATE USER
+server.post("/users", (req, res) => {
+  const { name } = req.body;
+  const total = users.length;
+
+  users.push(name);
 
   return res.json({
-    message: `Dados do usuário ${id}`
+    usuario: `${users[total]}`
+  });
+});
+
+//EDIT USER
+server.put("/users/:index", (req, res) => {
+  const { index } = req.params;
+  const { name } = req.body;
+
+  users[index] = name;
+
+  return res.json(users);
+});
+
+//DELETE USER
+server.delete("/users/:index", (req, res) => {
+  const { index } = req.params;
+
+  users.splice(index, 1);
+
+  return res.json({
+    message: true
   });
 });
 
