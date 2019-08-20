@@ -6,6 +6,43 @@ server.use(express.json());
 
 const users = ["Fabricio", "Jessica", "Lola"];
 
+//GLOBAL MIDDLEWARE
+server.use((req, res, next) => {
+  //CHECKS IF THE ROUTE EXIST. IF DONT, RETURN THE ERROR.
+  /*  
+    const route = req.url;
+    
+    if (res.status(404))
+    return res.json({
+      message: "Not Found. Please, check the url and try again"
+    });*/
+
+  return next();
+});
+
+//LOCAL MIDDLEWARE
+function checkUserExists(req, res, next) {
+  if (!req.body.name)
+    return res.status(400).json({
+      error: "Username is required"
+    });
+
+  return next();
+}
+
+function checkUserInArray(req, res, next) {
+  const user = users[req.params.index];
+
+  if (!user)
+    return res.status(400).json({
+      error: "User does not exists"
+    });
+
+  req.user = user;
+
+  return next();
+}
+
 //ROUTE
 server.get("/home", (req, res) => {
   return res.json({
@@ -19,7 +56,7 @@ server.get("/welcome", (req, res) => {
 
   if (!nome) {
     return res.json({
-      message: "Usuário não definido. Por favor digite o seu nome"
+      message: "User undefined. Please, try again"
     });
   }
   return res.json({
@@ -28,10 +65,8 @@ server.get("/welcome", (req, res) => {
 });
 
 //ROUTE WITH ROUTE PARAMS
-server.get("/users/:index", (req, res) => {
-  const { index } = req.params;
-
-  return res.json(users[index]);
+server.get("/users/:index", checkUserInArray, (req, res) => {
+  return res.json(req.user);
 });
 
 //ALL USERS
@@ -42,7 +77,7 @@ server.get("/users", (req, res) => {
 });
 
 //CREATE USER
-server.post("/users", (req, res) => {
+server.post("/users", checkUserExists, (req, res) => {
   const { name } = req.body;
   const total = users.length;
 
@@ -54,7 +89,7 @@ server.post("/users", (req, res) => {
 });
 
 //EDIT USER
-server.put("/users/:index", (req, res) => {
+server.put("/users/:index", checkUserExists, checkUserInArray, (req, res) => {
   const { index } = req.params;
   const { name } = req.body;
 
@@ -64,7 +99,7 @@ server.put("/users/:index", (req, res) => {
 });
 
 //DELETE USER
-server.delete("/users/:index", (req, res) => {
+server.delete("/users/:index", checkUserInArray, (req, res) => {
   const { index } = req.params;
 
   users.splice(index, 1);
